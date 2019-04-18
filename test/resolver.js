@@ -416,3 +416,29 @@ test('browser field in package.json', function (t) {
         }
     );
 });
+
+test('syntax field, esmodules key in package.json', function (t) {
+    t.plan(3);
+
+    var dir = path.join(__dirname, 'resolver');
+    resolve(
+        './syntax_field',
+        {
+            basedir: dir,
+            packageFilter: function packageFilter(pkg) {
+                if (pkg.syntax) {
+                    pkg.main = pkg.syntax.esmodules;
+                    delete pkg.syntax;
+                }
+                return pkg;
+            }
+        },
+        function (err, res, pkg) {
+            if (err) t.fail(err);
+            t.equal(res, path.join(dir, 'syntax_field', 'b.js'));
+            t.equal(pkg && pkg.main, 'b');
+            t.equal(pkg && pkg.syntax, undefined);
+        }
+    );
+});
+
