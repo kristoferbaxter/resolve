@@ -442,3 +442,48 @@ test('syntax field, esmodules key in package.json', function (t) {
     );
 });
 
+test('nested paths from root', function (t) {
+    t.plan(6);
+
+    var dir = path.join(__dirname, 'resolver', 'nested_paths');
+    resolve(
+        'container',
+        {
+            basedir: dir,
+            packageFilter: function packageFilter(pkg) {
+                if (pkg.syntax) {
+                    pkg.main = pkg.syntax.esmodules;
+                    delete pkg.syntax;
+                }
+                return pkg;
+            }
+        },
+        function (err, res, pkg) {
+            if (err) t.fail(err);
+            t.equal(res, path.join(dir, 'node_modules', 'container', 'index.js'));
+            t.equal(pkg && pkg.main, 'index.js');
+            t.equal(pkg && pkg.syntax, undefined);
+        }
+    );
+
+    resolve(
+        'nested',
+        {
+            basedir: dir,
+            packageFilter: function packageFilter(pkg) {
+                if (pkg.syntax) {
+                    pkg.main = pkg.syntax.esmodules;
+                    delete pkg.syntax;
+                }
+                return pkg;
+            }
+        },
+        function (err, res, pkg) {
+            if (err) t.fail(err);
+            t.equal(res, path.join(dir, 'node_modules', 'container', 'nested', 'alternate.js'));
+            t.equal(pkg && pkg.main, 'alternate.js');
+            t.equal(pkg && pkg.syntax, undefined);
+        }
+    );
+});
+
